@@ -265,6 +265,13 @@
         hr {
             margin: 20px 0;
         }
+        
+        .auto-upload-badge {
+            font-size: 0.8rem;
+            color: #2c6e2c;
+            margin-top: 8px;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
@@ -301,14 +308,15 @@
         </div>
         <button id="startExpBtn" style="background:#1f4f2b; width:100%;">▶ 开始实验</button>
         <button id="testerBackToRole" class="back-btn" style="margin-top:16px;">↺ 返回角色选择</button>
-        <p style="font-size:12px; text-align:center; margin-top:12px;">* 每次先根据提示点击「继续」，然后观察刺激并判断镜像。</p>
+        <div class="auto-upload-badge" id="autoUploadStatus"></div>
+        <p style="font-size:12px; text-align:center; margin-top:12px;">* 每次先根据提示点击「继续」，然后观察刺激并判断镜像。<br>✨ 实验完成后数据将自动上传至云端。</p>
     </div>
 
     <!-- 组织者后台面板 -->
     <div id="organizerPanel" style="display:none;">
         <h2>📁 实验云端控制台</h2>
         
-        <!-- 新增：参数调节区域（刺激显示时间） -->
+        <!-- 参数调节区域（刺激显示时间） -->
         <div class="admin-card">
             <strong>⚙️ 前端实验参数调节</strong>
             <div class="param-slider">
@@ -317,16 +325,17 @@
                 <span id="durationValueDisplay">1000 ms</span>
                 <button id="saveDurationBtn" class="small-btn">💾 保存设置</button>
             </div>
-            <p style="font-size:12px; color:gray;">* 保存后，新开始的实验将使用此时间。当前测试者实验不受影响。</p>
+            <p style="font-size:12px; color:gray;">* 保存后，新开始的实验将使用此时间。</p>
         </div>
 
         <div class="admin-card">
-            <strong>🔗 Sheety + Google Sheets 同步</strong>
+            <strong>🔗 Sheety + Google Sheets 同步 (手动操作)</strong>
             <div style="display: flex; gap:12px; flex-wrap:wrap; margin-top:12px;">
-                <button id="uploadAllLocalToSheety" class="small-btn">⬆️ 手动上传(本地实验数据)</button>
+                <button id="uploadAllLocalToSheety" class="small-btn">⬆️ 手动上传全部本地数据</button>
                 <button id="downloadSheetyData" class="small-btn">⬇️ 下载云端数据(CSV)</button>
                 <button id="fetchAndShowData" class="small-btn">📋 刷新 & 显示云端记录</button>
             </div>
+            <p style="font-size:12px; margin-top:8px;">注：测试者完成实验后<strong>数据会自动上传</strong>，此处为额外的手动管理功能。</p>
         </div>
         
         <div class="admin-card">
@@ -334,7 +343,7 @@
             <div id="cloudDataView" class="data-table"><p>点击刷新...</p></div>
         </div>
         
-        <!-- 新增：本地实验详细记录表（表格形式） -->
+        <!-- 本地实验详细记录表（表格形式） -->
         <div class="admin-card">
             <strong>📊 本地所有实验详细记录表</strong>
             <button id="refreshLocalTableBtn" class="small-btn">🔄 刷新本地数据表</button>
@@ -354,7 +363,7 @@
 
 <script>
     // ---------- 全局配置 ----------
-    const SHEETY_API = "https://api.sheety.co/3417287e733b05850abb4a8820aa6cbe/muct心理旋转/工作表1";
+    const SHEETY_API = "https://api.sheety.co/3417287e733b05850abb4a8820aa6cbe/认知心理学心理旋转实验/工作表1";
     const TOTAL_TRIALS = 15;
     const COND_TYPES = ['N', 'I', 'O', 'B', 'C'];
     const COND_REPEAT = 3;
@@ -364,10 +373,9 @@
     const BASE_POOL = ['F','G','J','K','L','N','P','Q','R','S','Z','2','3','4','5','6','7','9'];
     const CHAR_POOL = BASE_POOL.filter(ch => !FORBIDDEN.includes(ch));
     
-    // 默认刺激显示时长 (毫秒)
-    let STIMULUS_DURATION = 1000;  // 可从localStorage读取
+    // 刺激显示时长 (毫秒)
+    let STIMULUS_DURATION = 1000;
     
-    // 加载存储的刺激时长
     function loadStimulusDuration() {
         const saved = localStorage.getItem("psychRotation_stimulusDuration");
         if(saved && !isNaN(parseInt(saved))) {
@@ -375,7 +383,6 @@
         } else {
             STIMULUS_DURATION = 1000;
         }
-        // 同步UI滑块（如果组织者界面存在）
         const slider = document.getElementById('stimulusDurationSlider');
         const display = document.getElementById('durationValueDisplay');
         if(slider) slider.value = STIMULUS_DURATION;
@@ -394,9 +401,9 @@
     let trialsQueue = [];
     let currentTrialIndex = 0;
     let userResponses = [];
-    const participantId = "participant";  // 固定ID，不再询问
+    const participantId = "participant";  // 固定ID
     
-    // DOM
+    // DOM 元素
     const roleDiv = document.getElementById('roleSelection');
     const roleButtonsContainer = document.getElementById('roleButtonsContainer');
     const testerPanel = document.getElementById('testerPanel');
@@ -411,6 +418,7 @@
     const mirrorNoBtn = document.getElementById('mirrorNoBtn');
     const feedbackMsgDiv = document.getElementById('feedbackMsg');
     const startExpBtn = document.getElementById('startExpBtn');
+    const autoUploadStatusSpan = document.getElementById('autoUploadStatus');
     
     // 辅助函数
     function getRandomInt(min, max) {
@@ -623,7 +631,6 @@
         dynamicPromptArea.innerHTML = '';
         
         drawStimulus(trial.letter, trial.angle, trial.mirrored);
-        // 使用当前刺激时长（从全局变量读取，组织者可调）
         await new Promise(r => setTimeout(r, STIMULUS_DURATION));
         ctx.clearRect(0, 0, 240, 240);
         
@@ -661,6 +668,56 @@
         await new Promise(r => setTimeout(r, 400));
     }
     
+    // ========== 自动上传云端功能 ==========
+    async function uploadBatchToSheety(responsesArray) {
+        if(!responsesArray || responsesArray.length === 0) return 0;
+        let successCount = 0;
+        for(let rec of responsesArray) {
+            try {
+                const payload = {
+                    "工作表1": {
+                        "实验者id": rec.participantId,
+                        "轮次": rec.trialNumber,
+                        "字符": rec.letter,
+                        "旋转角度": rec.angle,
+                        "是否镜像": rec.mirrored,
+                        "前行条件": rec.condition,
+                        "判断正确": rec.userCorrect,
+                        "时间戳": rec.timestamp
+                    }
+                };
+                const resp = await fetch(SHEETY_API, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                if(resp.ok) successCount++;
+                else console.warn("单条上传失败", await resp.text());
+            } catch(e) {
+                console.error("自动上传出错", e);
+            }
+        }
+        return successCount;
+    }
+    
+    async function autoUploadCurrentExperiment() {
+        if(!userResponses.length) {
+            autoUploadStatusSpan.innerHTML = "";
+            return;
+        }
+        autoUploadStatusSpan.innerHTML = "⏫ 正在自动上传数据到云端...";
+        const success = await uploadBatchToSheety(userResponses);
+        if(success === userResponses.length) {
+            autoUploadStatusSpan.innerHTML = "✅ 数据已自动上传至云端表格！";
+        } else {
+            autoUploadStatusSpan.innerHTML = `⚠️ 部分上传失败 (${success}/${userResponses.length})，请稍后手动上传。`;
+        }
+        setTimeout(() => {
+            if(autoUploadStatusSpan.innerHTML.includes("自动上传")) return;
+            setTimeout(() => { autoUploadStatusSpan.innerHTML = ""; }, 4000);
+        }, 3000);
+    }
+    
     async function startExperiment() {
         if(experimentActive) return;
         
@@ -688,6 +745,7 @@
         experimentActive = true;
         startExpBtn.disabled = true;
         startExpBtn.innerText = "实验中...";
+        autoUploadStatusSpan.innerHTML = "";
         
         for(let i=0; i<trialsQueue.length; i++) {
             if(!experimentActive) break;
@@ -696,8 +754,10 @@
         experimentActive = false;
         startExpBtn.disabled = false;
         startExpBtn.innerText = "✅ 实验完成，重新开始";
-        dynamicPromptArea.innerHTML = '<div class="prompt-graphics">🎉 实验全部完成！感谢参与！数据已保存本地。</div>';
+        dynamicPromptArea.innerHTML = '<div class="prompt-graphics">🎉 实验全部完成！感谢参与！数据已保存本地并自动上传云端。</div>';
         saveResponsesToLocal();
+        // 自动上传云端
+        await autoUploadCurrentExperiment();
         mirrorYesBtn.disabled = true; mirrorNoBtn.disabled = true;
     }
     
@@ -713,7 +773,7 @@
         return raw ? JSON.parse(raw) : [];
     }
     
-    // ---------- 本地详细记录表（表格形式） ----------
+    // 本地详细记录表（表格形式）
     function renderLocalDetailTable() {
         const container = document.getElementById('localDetailTable');
         const experiments = getAllLocalExperiments();
@@ -794,7 +854,7 @@
         URL.revokeObjectURL(url);
     }
     
-    // Sheety 交互（保留原有函数，略作精简）
+    // Sheety 交互（手动上传、获取等）
     async function uploadToSheety(recordsArray) {
         let success = 0;
         for(let rec of recordsArray){
@@ -815,6 +875,7 @@
         }
         return success;
     }
+    
     async function fetchSheetyData() {
         try{
             const resp = await fetch(SHEETY_API);
@@ -822,17 +883,27 @@
         } catch(e){}
         return [];
     }
+    
     async function renderCloudTable(){
         const container = document.getElementById('cloudDataView');
         const rows = await fetchSheetyData();
         if(!rows.length){ container.innerHTML="<p>暂无云端数据</p>"; return; }
-        let html = '<table><head><tr><th>ID</th><th>轮次</th><th>字符</th><th>角度</th><th>镜像</th><th>条件</th><th>正确</th></tr></head><tbody>';
+        let html = '<table><thead><tr><th>ID</th><th>轮次</th><th>字符</th><th>角度</th><th>镜像</th><th>条件</th><th>正确</th></tr></thead><tbody>';
         rows.slice(0,100).forEach(r=>{ 
-            html += `<tr><td>${r.实验者id || ''}</td><td>${r.轮次 || ''}</td><td>${r.字符 || ''}</td><td>${r.旋转角度 || ''}</td><td>${r.是否镜像 || ''}</td><td>${r.前行条件 || ''}</td><td>${r.判断正确 || ''}</td></tr>`;
+            html += `<tr>
+                        <td>${r.实验者id || ''}</td>
+                        <td>${r.轮次 || ''}</td>
+                        <td>${r.字符 || ''}</td>
+                        <td>${r.旋转角度 || ''}</td>
+                        <td>${r.是否镜像 || ''}</td>
+                        <td>${r.前行条件 || ''}</td>
+                        <td>${r.判断正确 || ''}</td>
+                     </tr>`;
         });
         html += '</tbody></table>';
         container.innerHTML = html;
     }
+    
     async function uploadAllLocalToSheety(){
         let all = getAllLocalExperiments();
         let allRecs = [];
@@ -840,6 +911,7 @@
         if(!allRecs.length) alert("没有本地实验数据");
         else { let cnt = await uploadToSheety(allRecs); alert(`成功上传 ${cnt} 条到Sheety`); renderCloudTable(); }
     }
+    
     function displayLocalRecords(){
         let exps = getAllLocalExperiments();
         const container = document.getElementById('localDataPreview');
@@ -908,8 +980,8 @@
         dynamicPromptArea.innerHTML = "";
         ctx.clearRect(0,0,240,240);
         startExpBtn.onclick = () => { if(!experimentActive) startExperiment(); };
-        // 确保加载最新的刺激时长
         loadStimulusDuration();
+        autoUploadStatusSpan.innerHTML = "";
     }
     
     function switchToOrganizerByPwd(pwd){
@@ -927,7 +999,6 @@
         organizerPanel.style.display = 'none';
         currentRole = null;
         organizerPassPanel.style.display = 'none';
-        // 确保角色按钮可见（恢复显示）
         if(roleButtonsContainer) roleButtonsContainer.style.display = 'flex';
     }
     
