@@ -12,7 +12,7 @@
 
         body {
             font-family: 'Segoe UI', 'Roboto', 'Noto Sans', system-ui, sans-serif;
-            background: linear-gradient(145deg, #1a2a3a 0%, #0f1a24 100%);
+            background: linear-gradient(145deg, #eef2f7 0%, #cddae9 100%);
             min-height: 100vh;
             display: flex;
             justify-content: center;
@@ -363,6 +363,7 @@
 
 <script>
     // ---------- 全局配置 ----------
+    // 使用用户提供的新 Sheety URL
     const SHEETY_API = "https://api.sheety.co/3417287e733b05850abb4a8820aa6cbe/muct心理旋转/工作表1";
     const TOTAL_TRIALS = 15;
     const COND_TYPES = ['N', 'I', 'O', 'B', 'C'];
@@ -668,7 +669,7 @@
         await new Promise(r => setTimeout(r, 400));
     }
     
-    // ========== 自动上传云端功能 ==========
+    // ========== 自动上传云端功能（使用新URL） ==========
     async function uploadBatchToSheety(responsesArray) {
         if(!responsesArray || responsesArray.length === 0) return 0;
         let successCount = 0;
@@ -813,7 +814,7 @@
                         <td>${r.condition}</td>
                         <td>${r.correct}</td>
                         <td>${r.time}</td>
-                     </tr>`;
+                     <tr>`;
         });
         html += '</tbody></table>';
         container.innerHTML = html;
