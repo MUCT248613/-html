@@ -1,0 +1,946 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>心理旋转实验 · 谢泼德范式</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            user-select: none;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Roboto', 'Noto Sans', system-ui, sans-serif;
+            background: linear-gradient(145deg, #eef2f7 0%, #cddae9 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 850px;
+            width: 100%;
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(2px);
+            border-radius: 48px;
+            box-shadow: 0 20px 35px -12px rgba(0,0,0,0.35);
+            padding: 24px 28px 36px;
+            transition: all 0.2s;
+            border: 1px solid rgba(255,255,255,0.6);
+        }
+
+        h1, h2, h3 {
+            font-weight: 600;
+            color: #1a2c3e;
+            margin-top: 0;
+        }
+
+        .role-panel {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin: 25px 0;
+        }
+
+        .role-btn {
+            background: #2c3e66;
+            border: none;
+            padding: 14px 32px;
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: white;
+            border-radius: 60px;
+            cursor: pointer;
+            transition: 0.1s;
+            box-shadow: 0 5px 12px rgba(0,0,0,0.2);
+        }
+
+        .role-btn:hover {
+            background: #1e2f4a;
+            transform: scale(0.97);
+        }
+
+        .admin-pwd-area {
+            background: #eef2f7;
+            border-radius: 32px;
+            padding: 20px;
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        input, button {
+            font-size: 1rem;
+            border-radius: 40px;
+            border: none;
+            padding: 10px 18px;
+        }
+
+        input {
+            background: white;
+            border: 1px solid #bdc4cc;
+            width: 180px;
+            text-align: center;
+        }
+
+        button {
+            background: #2c6e2c;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.1s linear;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        button:active {
+            transform: scale(0.96);
+        }
+
+        .stimulus-canvas {
+            background: white;
+            border-radius: 32px;
+            box-shadow: 0 12px 25px rgba(0,0,0,0.2);
+            display: block;
+            margin: 20px auto;
+            width: 240px;
+            height: 240px;
+        }
+
+        .info-bar {
+            background: #e9edf2;
+            border-radius: 48px;
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-between;
+            font-weight: 500;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .trial-badge, .cond-badge {
+            background: #1e3a5f;
+            color: white;
+            border-radius: 32px;
+            padding: 5px 16px;
+        }
+
+        .feedback {
+            background: #ffffffda;
+            border-radius: 60px;
+            text-align: center;
+            padding: 10px;
+            margin: 12px 0;
+            font-weight: bold;
+        }
+
+        .button-group {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin: 20px 0;
+        }
+
+        .decision-btn {
+            background: #457b9d;
+            padding: 12px 28px;
+            font-size: 1.2rem;
+            min-width: 130px;
+        }
+
+        .decision-btn:disabled {
+            background: #b0c4de;
+            cursor: not-allowed;
+        }
+
+        .admin-card {
+            background: #f8fafd;
+            border-radius: 32px;
+            padding: 18px;
+            margin-bottom: 20px;
+            border: 1px solid #cddfe7;
+        }
+
+        .data-table {
+            max-height: 300px;
+            overflow-y: auto;
+            font-size: 0.75rem;
+            background: #fff;
+            border-radius: 24px;
+            padding: 8px;
+            margin-top: 12px;
+            border: 1px solid #dce5ec;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            border-bottom: 1px solid #ddd;
+            padding: 6px 4px;
+            text-align: left;
+        }
+
+        th {
+            background: #eef2f7;
+            position: sticky;
+            top: 0;
+        }
+
+        .small-btn {
+            background: #3c6e71;
+            margin: 8px 5px;
+            padding: 6px 14px;
+            font-size: 0.85rem;
+        }
+
+        .prompt-graphics {
+            background: #fef9e6;
+            border-radius: 28px;
+            padding: 20px;
+            min-height: 200px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            margin: 15px 0;
+        }
+
+        .dual-panel {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+
+        .graphic-card {
+            background: white;
+            border-radius: 32px;
+            padding: 15px;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            min-width: 150px;
+        }
+
+        .arrow-canvas, .mini-char-canvas {
+            background: #f4f9ff;
+            border-radius: 30px;
+            display: block;
+            margin: 0 auto;
+        }
+
+        .continue-btn {
+            background: #2c6e2c;
+            font-size: 1.2rem;
+            padding: 12px 28px;
+            margin-top: 12px;
+            width: auto;
+        }
+
+        .back-btn {
+            background: #5d6b7a;
+            margin-top: 16px;
+            width: 100%;
+        }
+
+        .param-slider {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            flex-wrap: wrap;
+            margin: 10px 0;
+        }
+
+        .param-slider label {
+            font-weight: bold;
+        }
+
+        hr {
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+<div class="container" id="appRoot">
+    <!-- 角色选择面板（默认显示） -->
+    <div id="roleSelection">
+        <h1>🧠 心理旋转实验 · 谢泼德范式</h1>
+        <div id="roleButtonsContainer" class="role-panel">
+            <button class="role-btn" id="testerBtn">🧪 测试者</button>
+            <button class="role-btn" id="organizerBtn">📊 组织者</button>
+        </div>
+        <div id="organizerPassPanel" style="display:none;" class="admin-pwd-area">
+            <p>🔐 组织者验证</p>
+            <input type="password" id="adminPassword" placeholder="请输入密码" autocomplete="off">
+            <button id="verifyAdminBtn">确认进入后台</button>
+        </div>
+    </div>
+
+    <!-- 测试者面板 -->
+    <div id="testerPanel" style="display:none;">
+        <div class="info-bar">
+            <span>🧪 心理旋转测验</span>
+            <span class="trial-badge" id="trialCounter">第1 / 15轮</span>
+            <span class="cond-badge" id="conditionLabel">条件: --</span>
+        </div>
+        <div id="dynamicPromptArea" style="background:#d9e3ec; border-radius: 28px; margin-bottom: 12px;"></div>
+        <div style="text-align:center;">
+            <canvas id="stimulusCanvas" class="stimulus-canvas" width="240" height="240"></canvas>
+        </div>
+        <div id="feedbackMsg" class="feedback"></div>
+        <div class="button-group">
+            <button class="decision-btn" id="mirrorYesBtn" disabled>🪞 是镜像</button>
+            <button class="decision-btn" id="mirrorNoBtn" disabled>❌ 不是镜像</button>
+        </div>
+        <button id="startExpBtn" style="background:#1f4f2b; width:100%;">▶ 开始实验</button>
+        <button id="testerBackToRole" class="back-btn" style="margin-top:16px;">↺ 返回角色选择</button>
+        <p style="font-size:12px; text-align:center; margin-top:12px;">* 每次先根据提示点击「继续」，然后观察刺激并判断镜像。</p>
+    </div>
+
+    <!-- 组织者后台面板 -->
+    <div id="organizerPanel" style="display:none;">
+        <h2>📁 实验云端控制台</h2>
+        
+        <!-- 新增：参数调节区域（刺激显示时间） -->
+        <div class="admin-card">
+            <strong>⚙️ 前端实验参数调节</strong>
+            <div class="param-slider">
+                <label>刺激呈现时间 (毫秒):</label>
+                <input type="range" id="stimulusDurationSlider" min="200" max="3000" step="50" value="1000">
+                <span id="durationValueDisplay">1000 ms</span>
+                <button id="saveDurationBtn" class="small-btn">💾 保存设置</button>
+            </div>
+            <p style="font-size:12px; color:gray;">* 保存后，新开始的实验将使用此时间。当前测试者实验不受影响。</p>
+        </div>
+
+        <div class="admin-card">
+            <strong>🔗 Sheety + Google Sheets 同步</strong>
+            <div style="display: flex; gap:12px; flex-wrap:wrap; margin-top:12px;">
+                <button id="uploadAllLocalToSheety" class="small-btn">⬆️ 手动上传(本地实验数据)</button>
+                <button id="downloadSheetyData" class="small-btn">⬇️ 下载云端数据(CSV)</button>
+                <button id="fetchAndShowData" class="small-btn">📋 刷新 & 显示云端记录</button>
+            </div>
+        </div>
+        
+        <div class="admin-card">
+            <strong>📜 云端实验记录</strong>
+            <div id="cloudDataView" class="data-table"><p>点击刷新...</p></div>
+        </div>
+        
+        <!-- 新增：本地实验详细记录表（表格形式） -->
+        <div class="admin-card">
+            <strong>📊 本地所有实验详细记录表</strong>
+            <button id="refreshLocalTableBtn" class="small-btn">🔄 刷新本地数据表</button>
+            <button id="exportLocalTableCSV" class="small-btn">📎 导出本地表为CSV</button>
+            <div id="localDetailTable" class="data-table"><p>暂无数据，点击刷新加载本地实验批次。</p></div>
+        </div>
+        
+        <div class="admin-card">
+            <strong>💾 本地持久化批次概览</strong>
+            <button id="viewLocalRecordsBtn" class="small-btn">🗂️ 查看批次概览</button>
+            <div id="localDataPreview" class="data-table"></div>
+        </div>
+        
+        <button id="organizerBackToRole" class="back-btn">↺ 返回角色选择</button>
+    </div>
+</div>
+
+<script>
+    // ---------- 全局配置 ----------
+    const SHEETY_API = "https://api.sheety.co/3417287e733b05850abb4a8820aa6cbe/muct心理旋转/工作表1";
+    const TOTAL_TRIALS = 15;
+    const COND_TYPES = ['N', 'I', 'O', 'B', 'C'];
+    const COND_REPEAT = 3;
+    
+    // 字符池：去除容易混淆字符及ABCDE
+    const FORBIDDEN = ['W','T','Y','U','I','O','H','X','V','M','0','1','8','A','B','C','D','E'];
+    const BASE_POOL = ['F','G','J','K','L','N','P','Q','R','S','Z','2','3','4','5','6','7','9'];
+    const CHAR_POOL = BASE_POOL.filter(ch => !FORBIDDEN.includes(ch));
+    
+    // 默认刺激显示时长 (毫秒)
+    let STIMULUS_DURATION = 1000;  // 可从localStorage读取
+    
+    // 加载存储的刺激时长
+    function loadStimulusDuration() {
+        const saved = localStorage.getItem("psychRotation_stimulusDuration");
+        if(saved && !isNaN(parseInt(saved))) {
+            STIMULUS_DURATION = parseInt(saved);
+        } else {
+            STIMULUS_DURATION = 1000;
+        }
+        // 同步UI滑块（如果组织者界面存在）
+        const slider = document.getElementById('stimulusDurationSlider');
+        const display = document.getElementById('durationValueDisplay');
+        if(slider) slider.value = STIMULUS_DURATION;
+        if(display) display.innerText = STIMULUS_DURATION + " ms";
+    }
+    
+    function saveStimulusDuration(duration) {
+        STIMULUS_DURATION = duration;
+        localStorage.setItem("psychRotation_stimulusDuration", duration);
+        const display = document.getElementById('durationValueDisplay');
+        if(display) display.innerText = duration + " ms";
+    }
+    
+    let currentRole = null;
+    let experimentActive = false;
+    let trialsQueue = [];
+    let currentTrialIndex = 0;
+    let userResponses = [];
+    const participantId = "participant";  // 固定ID，不再询问
+    
+    // DOM
+    const roleDiv = document.getElementById('roleSelection');
+    const roleButtonsContainer = document.getElementById('roleButtonsContainer');
+    const testerPanel = document.getElementById('testerPanel');
+    const organizerPanel = document.getElementById('organizerPanel');
+    const organizerPassPanel = document.getElementById('organizerPassPanel');
+    const canvas = document.getElementById('stimulusCanvas');
+    const ctx = canvas.getContext('2d');
+    const dynamicPromptArea = document.getElementById('dynamicPromptArea');
+    const trialCounterSpan = document.getElementById('trialCounter');
+    const conditionLabelSpan = document.getElementById('conditionLabel');
+    const mirrorYesBtn = document.getElementById('mirrorYesBtn');
+    const mirrorNoBtn = document.getElementById('mirrorNoBtn');
+    const feedbackMsgDiv = document.getElementById('feedbackMsg');
+    const startExpBtn = document.getElementById('startExpBtn');
+    
+    // 辅助函数
+    function getRandomInt(min, max) {
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+    
+    function generateTrials() {
+        let condPool = [];
+        COND_TYPES.forEach(cond => {
+            for(let i=0; i<COND_REPEAT; i++) condPool.push(cond);
+        });
+        for(let i=condPool.length-1; i>0; i--){
+            const j = Math.floor(Math.random()*(i+1));
+            [condPool[i], condPool[j]] = [condPool[j], condPool[i]];
+        }
+        let trials = [];
+        for(let i=0; i<TOTAL_TRIALS; i++){
+            const condition = condPool[i];
+            const randomChar = CHAR_POOL[Math.floor(Math.random() * CHAR_POOL.length)];
+            const angle = getRandomInt(0, 359);
+            const mirrored = Math.random() < 0.5;
+            trials.push({ cond: condition, letter: randomChar, angle: angle, mirrored: mirrored });
+        }
+        return trials;
+    }
+    
+    function drawStimulus(letter, angleDeg, mirrored) {
+        ctx.clearRect(0, 0, 240, 240);
+        ctx.save();
+        ctx.translate(120, 120);
+        if(mirrored) ctx.scale(-1, 1);
+        ctx.rotate(angleDeg * Math.PI / 180);
+        ctx.font = "bold 70px 'Segoe UI', 'Courier New', monospace";
+        ctx.fillStyle = "#1e2a3a";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(letter, 0, 0);
+        ctx.restore();
+    }
+    
+    function drawArrowOnCanvas(canvasElem, angleDeg, size = 90) {
+        const w = canvasElem.width, h = canvasElem.height;
+        const ctxArrow = canvasElem.getContext('2d');
+        ctxArrow.clearRect(0, 0, w, h);
+        ctxArrow.save();
+        ctxArrow.translate(w/2, h/2);
+        ctxArrow.rotate(angleDeg * Math.PI / 180);
+        ctxArrow.beginPath();
+        ctxArrow.moveTo(0, -size*0.35);
+        ctxArrow.lineTo(-size*0.2, size*0.2);
+        ctxArrow.lineTo(-size*0.05, size*0.2);
+        ctxArrow.lineTo(-size*0.05, size*0.4);
+        ctxArrow.lineTo(size*0.05, size*0.4);
+        ctxArrow.lineTo(size*0.05, size*0.2);
+        ctxArrow.lineTo(size*0.2, size*0.2);
+        ctxArrow.closePath();
+        ctxArrow.fillStyle = "#2c3e66";
+        ctxArrow.fill();
+        ctxArrow.beginPath();
+        ctxArrow.arc(0, 0, size*0.12, 0, 2*Math.PI);
+        ctxArrow.fillStyle = "#e9b35f";
+        ctxArrow.fill();
+        ctxArrow.restore();
+        ctxArrow.beginPath();
+        ctxArrow.arc(w/2, h/2, 5, 0, 2*Math.PI);
+        ctxArrow.fillStyle = "#1a2c3e";
+        ctxArrow.fill();
+    }
+    
+    function drawNormalChar(canvasElem, letter) {
+        const w = canvasElem.width, h = canvasElem.height;
+        const ctxChar = canvasElem.getContext('2d');
+        ctxChar.clearRect(0, 0, w, h);
+        ctxChar.font = `bold ${Math.min(w*0.6, 70)}px monospace`;
+        ctxChar.fillStyle = "#1e2a3e";
+        ctxChar.textAlign = "center";
+        ctxChar.textBaseline = "middle";
+        ctxChar.fillText(letter, w/2, h/2);
+    }
+    
+    function drawRotatedChar(canvasElem, letter, angleDeg) {
+        const w = canvasElem.width, h = canvasElem.height;
+        const ctxR = canvasElem.getContext('2d');
+        ctxR.clearRect(0, 0, w, h);
+        ctxR.save();
+        ctxR.translate(w/2, h/2);
+        ctxR.rotate(angleDeg * Math.PI / 180);
+        ctxR.font = `bold ${Math.min(w*0.6, 70)}px monospace`;
+        ctxR.fillStyle = "#2a5f7a";
+        ctxR.textAlign = "center";
+        ctxR.textBaseline = "middle";
+        ctxR.fillText(letter, 0, 0);
+        ctxR.restore();
+    }
+    
+    let continueResolver = null;
+    function waitForContinue() {
+        return new Promise((resolve) => {
+            if(continueResolver) return;
+            continueResolver = resolve;
+            const continueBtn = document.createElement('button');
+            continueBtn.textContent = '▶ 继续下一阶段';
+            continueBtn.className = 'continue-btn';
+            continueBtn.style.background = '#2c6e2c';
+            continueBtn.onclick = () => {
+                if(continueResolver) {
+                    continueResolver();
+                    continueResolver = null;
+                }
+                continueBtn.remove();
+            };
+            const container = dynamicPromptArea;
+            const oldBtn = container.querySelector('.continue-btn');
+            if(oldBtn) oldBtn.remove();
+            container.appendChild(continueBtn);
+        });
+    }
+    
+    async function showPromptByCondition(trial) {
+        dynamicPromptArea.innerHTML = '';
+        const cond = trial.cond;
+        const letter = trial.letter;
+        const angle = trial.angle;
+        
+        if(cond === 'N') {
+            dynamicPromptArea.innerHTML = '<div class="prompt-graphics">🔔 无提前提示，请准备好后点击"继续"观察图形</div>';
+            await waitForContinue();
+            return;
+        }
+        else if(cond === 'I') {
+            const container = document.createElement('div');
+            container.className = 'prompt-graphics';
+            container.innerHTML = '<div style="font-weight:bold">🔤 即将出现的字符是：</div>';
+            const charCanvas = document.createElement('canvas');
+            charCanvas.width = 120; charCanvas.height = 120;
+            charCanvas.className = 'mini-char-canvas';
+            drawNormalChar(charCanvas, letter);
+            container.appendChild(charCanvas);
+            dynamicPromptArea.appendChild(container);
+            await waitForContinue();
+            return;
+        }
+        else if(cond === 'O') {
+            const container = document.createElement('div');
+            container.className = 'prompt-graphics';
+            container.innerHTML = `<div style="font-weight:bold">🔄 旋转朝向提示 (${angle}°):</div>`;
+            const arrowCanvas = document.createElement('canvas');
+            arrowCanvas.width = 130; arrowCanvas.height = 130;
+            arrowCanvas.className = 'arrow-canvas';
+            drawArrowOnCanvas(arrowCanvas, angle, 60);
+            container.appendChild(arrowCanvas);
+            dynamicPromptArea.appendChild(container);
+            await waitForContinue();
+            return;
+        }
+        else if(cond === 'B') {
+            const container = document.createElement('div');
+            container.className = 'prompt-graphics';
+            const dualDiv = document.createElement('div');
+            dualDiv.className = 'dual-panel';
+            const leftCard = document.createElement('div');
+            leftCard.className = 'graphic-card';
+            leftCard.innerHTML = '<div>📖 字符</div>';
+            const charC = document.createElement('canvas');
+            charC.width = 110; charC.height = 110;
+            drawNormalChar(charC, letter);
+            leftCard.appendChild(charC);
+            const rightCard = document.createElement('div');
+            rightCard.className = 'graphic-card';
+            rightCard.innerHTML = '<div>🧭 旋转方向</div>';
+            const arrowC = document.createElement('canvas');
+            arrowC.width = 110; arrowC.height = 110;
+            drawArrowOnCanvas(arrowC, angle, 55);
+            rightCard.appendChild(arrowC);
+            dualDiv.appendChild(leftCard);
+            dualDiv.appendChild(rightCard);
+            container.appendChild(dualDiv);
+            dynamicPromptArea.appendChild(container);
+            await waitForContinue();
+            return;
+        }
+        else if(cond === 'C') {
+            const container = document.createElement('div');
+            container.className = 'prompt-graphics';
+            container.innerHTML = '<div style="font-weight:bold; margin-bottom:10px;">✨ 同时提示: 旋转后的字符(无镜像)</div>';
+            const rotatedCanvas = document.createElement('canvas');
+            rotatedCanvas.width = 160; rotatedCanvas.height = 160;
+            rotatedCanvas.className = 'mini-char-canvas';
+            drawRotatedChar(rotatedCanvas, letter, angle);
+            container.appendChild(rotatedCanvas);
+            dynamicPromptArea.appendChild(container);
+            await waitForContinue();
+            return;
+        }
+    }
+    
+    async function runTrialCorrect(trial, trialIdx) {
+        const cond = trial.cond;
+        let condName = {N:'无提示(N)', I:'提前告知字符(I)', O:'提前告知朝向(O)', B:'分开呈现(B)', C:'同时呈现(C)'}[cond];
+        conditionLabelSpan.innerText = `条件: ${condName}`;
+        trialCounterSpan.innerText = `第${trialIdx+1} / ${TOTAL_TRIALS}轮`;
+        mirrorYesBtn.disabled = true;
+        mirrorNoBtn.disabled = true;
+        feedbackMsgDiv.innerHTML = "";
+        
+        await showPromptByCondition(trial);
+        
+        dynamicPromptArea.innerHTML = '<div class="prompt-graphics" style="background:#eef3ff;">🔍 刺激即将呈现，请注视中央...</div>';
+        await new Promise(r => setTimeout(r, 300));
+        dynamicPromptArea.innerHTML = '';
+        
+        drawStimulus(trial.letter, trial.angle, trial.mirrored);
+        // 使用当前刺激时长（从全局变量读取，组织者可调）
+        await new Promise(r => setTimeout(r, STIMULUS_DURATION));
+        ctx.clearRect(0, 0, 240, 240);
+        
+        dynamicPromptArea.innerHTML = '<div class="prompt-graphics">🤔 该字母/数字是否被镜像翻转？</div>';
+        mirrorYesBtn.disabled = false;
+        mirrorNoBtn.disabled = false;
+        const userChoseMirror = await new Promise((resolve) => {
+            const onYes = () => { cleanup(); resolve(true); };
+            const onNo = () => { cleanup(); resolve(false); };
+            const cleanup = () => {
+                mirrorYesBtn.removeEventListener('click', onYes);
+                mirrorNoBtn.removeEventListener('click', onNo);
+            };
+            mirrorYesBtn.addEventListener('click', onYes);
+            mirrorNoBtn.addEventListener('click', onNo);
+        });
+        mirrorYesBtn.disabled = true;
+        mirrorNoBtn.disabled = true;
+        const isCorrect = (userChoseMirror === trial.mirrored);
+        feedbackMsgDiv.innerHTML = isCorrect ? "✅ 回答正确！" : `❌ 回答错误！ 实际${trial.mirrored ? "镜像" : "非镜像"}.`;
+        const record = {
+            participantId: participantId,
+            trialNumber: trialIdx+1,
+            letter: trial.letter,
+            angle: trial.angle,
+            mirrored: trial.mirrored ? "是" : "否",
+            condition: cond,
+            userCorrect: isCorrect ? "正确" : "错误",
+            timestamp: new Date().toISOString()
+        };
+        userResponses.push(record);
+        await new Promise(r => setTimeout(r, 1000));
+        feedbackMsgDiv.innerHTML = "";
+        dynamicPromptArea.innerHTML = '<div class="prompt-graphics">⏳ 准备下一轮...</div>';
+        await new Promise(r => setTimeout(r, 400));
+    }
+    
+    async function startExperiment() {
+        if(experimentActive) return;
+        
+        // 实验指导语
+        dynamicPromptArea.innerHTML = `
+            <div class="prompt-graphics">
+                <h3>📖 实验指导语</h3>
+                <p>您即将进行心理旋转实验。每个试次会先看到提示图形（不同条件），点击【继续】后呈现刺激图形，呈现时长由组织者设定（当前${STIMULUS_DURATION}毫秒）。<br>
+                刺激消失后，请判断图形是否被<strong>镜像翻转</strong>(水平翻转)。点击“是镜像”或“不是镜像”。<br>
+                共15轮，请集中注意力。点击下方按钮开始正式实验。</p>
+                <button id="guideContinueBtn" class="continue-btn">开始实验</button>
+            </div>
+        `;
+        const waitGuide = new Promise((resolve) => {
+            const btn = document.getElementById('guideContinueBtn');
+            if(btn) btn.onclick = () => { resolve(); };
+            else resolve();
+        });
+        await waitGuide;
+        dynamicPromptArea.innerHTML = '';
+        
+        trialsQueue = generateTrials();
+        currentTrialIndex = 0;
+        userResponses = [];
+        experimentActive = true;
+        startExpBtn.disabled = true;
+        startExpBtn.innerText = "实验中...";
+        
+        for(let i=0; i<trialsQueue.length; i++) {
+            if(!experimentActive) break;
+            await runTrialCorrect(trialsQueue[i], i);
+        }
+        experimentActive = false;
+        startExpBtn.disabled = false;
+        startExpBtn.innerText = "✅ 实验完成，重新开始";
+        dynamicPromptArea.innerHTML = '<div class="prompt-graphics">🎉 实验全部完成！感谢参与！数据已保存本地。</div>';
+        saveResponsesToLocal();
+        mirrorYesBtn.disabled = true; mirrorNoBtn.disabled = true;
+    }
+    
+    function saveResponsesToLocal() {
+        let allExperiments = localStorage.getItem("psychRotation_experiments");
+        let experiments = allExperiments ? JSON.parse(allExperiments) : [];
+        experiments.push({ batchId: Date.now(), participantId, completedAt: new Date().toISOString(), responses: userResponses });
+        localStorage.setItem("psychRotation_experiments", JSON.stringify(experiments));
+    }
+    
+    function getAllLocalExperiments() {
+        const raw = localStorage.getItem("psychRotation_experiments");
+        return raw ? JSON.parse(raw) : [];
+    }
+    
+    // ---------- 本地详细记录表（表格形式） ----------
+    function renderLocalDetailTable() {
+        const container = document.getElementById('localDetailTable');
+        const experiments = getAllLocalExperiments();
+        if(!experiments.length) {
+            container.innerHTML = "<p>暂无本地实验数据，请先完成至少一轮实验。</p>";
+            return;
+        }
+        let allRecords = [];
+        experiments.forEach((batch, batchIdx) => {
+            batch.responses.forEach(rec => {
+                allRecords.push({
+                    batchId: batch.batchId,
+                    participant: rec.participantId,
+                    trial: rec.trialNumber,
+                    letter: rec.letter,
+                    angle: rec.angle,
+                    mirrored: rec.mirrored,
+                    condition: rec.condition,
+                    correct: rec.userCorrect,
+                    time: rec.timestamp ? new Date(rec.timestamp).toLocaleString() : ''
+                });
+            });
+        });
+        if(allRecords.length === 0) {
+            container.innerHTML = "<p>没有详细记录。</p>";
+            return;
+        }
+        let html = '<table><thead><tr><th>实验批次ID</th><th>被试</th><th>轮次</th><th>字符</th><th>角度(°)</th><th>是否镜像</th><th>条件</th><th>正确性</th><th>时间</th></tr></thead><tbody>';
+        allRecords.forEach(r => {
+            html += `<tr>
+                        <td>${r.batchId}</td>
+                        <td>${r.participant}</td>
+                        <td>${r.trial}</td>
+                        <td>${r.letter}</td>
+                        <td>${r.angle}</td>
+                        <td>${r.mirrored}</td>
+                        <td>${r.condition}</td>
+                        <td>${r.correct}</td>
+                        <td>${r.time}</td>
+                     </tr>`;
+        });
+        html += '</tbody></table>';
+        container.innerHTML = html;
+    }
+    
+    function exportLocalTableCSV() {
+        const experiments = getAllLocalExperiments();
+        let allRecords = [];
+        experiments.forEach((batch) => {
+            batch.responses.forEach(rec => {
+                allRecords.push({
+                    batchId: batch.batchId,
+                    participant: rec.participantId,
+                    trial: rec.trialNumber,
+                    letter: rec.letter,
+                    angle: rec.angle,
+                    mirrored: rec.mirrored,
+                    condition: rec.condition,
+                    correct: rec.userCorrect,
+                    timestamp: rec.timestamp
+                });
+            });
+        });
+        if(allRecords.length === 0) { alert("无数据可导出"); return; }
+        let csvRows = [["批次ID","被试","轮次","字符","角度","镜像","条件","正确","时间戳"]];
+        for(let r of allRecords) {
+            csvRows.push([r.batchId, r.participant, r.trial, r.letter, r.angle, r.mirrored, r.condition, r.correct, r.timestamp]);
+        }
+        const csvContent = csvRows.map(row => row.join(",")).join("\n");
+        const blob = new Blob(["\uFEFF" + csvContent], {type: "text/csv;charset=utf-8;"});
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        link.href = url;
+        link.setAttribute("download", "local_experiment_details.csv");
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+    }
+    
+    // Sheety 交互（保留原有函数，略作精简）
+    async function uploadToSheety(recordsArray) {
+        let success = 0;
+        for(let rec of recordsArray){
+            try{
+                const payload = { "工作表1": {
+                    "实验者id": rec.participantId,
+                    "轮次": rec.trialNumber,
+                    "字符": rec.letter,
+                    "旋转角度": rec.angle,
+                    "是否镜像": rec.mirrored,
+                    "前行条件": rec.condition,
+                    "判断正确": rec.userCorrect,
+                    "时间戳": rec.timestamp
+                }};
+                const resp = await fetch(SHEETY_API, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)});
+                if(resp.ok) success++;
+            } catch(e){}
+        }
+        return success;
+    }
+    async function fetchSheetyData() {
+        try{
+            const resp = await fetch(SHEETY_API);
+            if(resp.ok) return (await resp.json())["工作表1"] || [];
+        } catch(e){}
+        return [];
+    }
+    async function renderCloudTable(){
+        const container = document.getElementById('cloudDataView');
+        const rows = await fetchSheetyData();
+        if(!rows.length){ container.innerHTML="<p>暂无云端数据</p>"; return; }
+        let html = '<table><head><tr><th>ID</th><th>轮次</th><th>字符</th><th>角度</th><th>镜像</th><th>条件</th><th>正确</th></tr></head><tbody>';
+        rows.slice(0,100).forEach(r=>{ 
+            html += `<tr><td>${r.实验者id || ''}</td><td>${r.轮次 || ''}</td><td>${r.字符 || ''}</td><td>${r.旋转角度 || ''}</td><td>${r.是否镜像 || ''}</td><td>${r.前行条件 || ''}</td><td>${r.判断正确 || ''}</td></tr>`;
+        });
+        html += '</tbody></table>';
+        container.innerHTML = html;
+    }
+    async function uploadAllLocalToSheety(){
+        let all = getAllLocalExperiments();
+        let allRecs = [];
+        for(let batch of all) for(let r of batch.responses) allRecs.push(r);
+        if(!allRecs.length) alert("没有本地实验数据");
+        else { let cnt = await uploadToSheety(allRecs); alert(`成功上传 ${cnt} 条到Sheety`); renderCloudTable(); }
+    }
+    function displayLocalRecords(){
+        let exps = getAllLocalExperiments();
+        const container = document.getElementById('localDataPreview');
+        if(!exps.length){ container.innerHTML="<p>暂无本地数据</p>"; return; }
+        let html = `<div>共 ${exps.length} 个实验批次</div>`;
+        exps.forEach((exp,idx)=>{
+            html += `<div style="border-top:1px solid #ccc; margin:8px 0; padding:6px;">
+                        批次 ${idx+1}: 被试 ${exp.participantId} | 记录数 ${exp.responses.length}
+                        <button class="small-btn" data-idx="${idx}" id="uploadBatch${idx}">⬆️ 上传该批次</button>
+                     </div>`;
+        });
+        container.innerHTML = html;
+        exps.forEach((exp,idx)=>{
+            const btn = document.getElementById(`uploadBatch${idx}`);
+            if(btn) btn.onclick = async () => {
+                let ok = await uploadToSheety(exp.responses);
+                alert(`上传 ${ok}/${exp.responses.length} 条`); renderCloudTable();
+            };
+        });
+    }
+    
+    function initOrganizerPanel(){
+        loadStimulusDuration();
+        const slider = document.getElementById('stimulusDurationSlider');
+        const display = document.getElementById('durationValueDisplay');
+        if(slider) {
+            slider.value = STIMULUS_DURATION;
+            display.innerText = STIMULUS_DURATION + " ms";
+            slider.oninput = () => {
+                display.innerText = slider.value + " ms";
+            };
+        }
+        document.getElementById('saveDurationBtn').onclick = () => {
+            const newDur = parseInt(document.getElementById('stimulusDurationSlider').value);
+            saveStimulusDuration(newDur);
+            alert(`刺激呈现时间已更新为 ${newDur} 毫秒，下次实验生效。`);
+        };
+        document.getElementById('uploadAllLocalToSheety').onclick = uploadAllLocalToSheety;
+        document.getElementById('fetchAndShowData').onclick = renderCloudTable;
+        document.getElementById('downloadSheetyData').onclick = async () => {
+            const data = await fetchSheetyData();
+            if(!data.length){ alert("无云端数据"); return; }
+            let csvRows = [["实验者ID","轮次","字符","旋转角度","是否镜像","前行条件","判断正确","时间戳"]];
+            for(let row of data) csvRows.push([row.实验者id||'', row.轮次||'', row.字符||'', row.旋转角度||'', row.是否镜像||'', row.前行条件||'', row.判断正确||'', row.时间戳||'']);
+            const csvContent = csvRows.map(r=>r.join(",")).join("\n");
+            const blob = new Blob(["\uFEFF"+csvContent], {type:"text/csv"});
+            const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download="sheety_data.csv"; a.click(); URL.revokeObjectURL(blob);
+        };
+        document.getElementById('viewLocalRecordsBtn').onclick = displayLocalRecords;
+        document.getElementById('refreshLocalTableBtn').onclick = renderLocalDetailTable;
+        document.getElementById('exportLocalTableCSV').onclick = exportLocalTableCSV;
+        document.getElementById('organizerBackToRole').onclick = () => switchToRoleSelection();
+        renderCloudTable();
+        displayLocalRecords();
+        renderLocalDetailTable();
+    }
+    
+    function switchToTester(){
+        roleDiv.style.display = 'none';
+        testerPanel.style.display = 'block';
+        organizerPanel.style.display = 'none';
+        currentRole = 'tester';
+        experimentActive = false;
+        startExpBtn.disabled = false;
+        startExpBtn.innerText = "▶ 开始实验";
+        dynamicPromptArea.innerHTML = "";
+        ctx.clearRect(0,0,240,240);
+        startExpBtn.onclick = () => { if(!experimentActive) startExperiment(); };
+        // 确保加载最新的刺激时长
+        loadStimulusDuration();
+    }
+    
+    function switchToOrganizerByPwd(pwd){
+        if(pwd === "99997255"){
+            roleDiv.style.display = 'none';
+            testerPanel.style.display = 'none';
+            organizerPanel.style.display = 'block';
+            initOrganizerPanel();
+        } else alert("密码错误，权限不足");
+    }
+    
+    function switchToRoleSelection(){
+        roleDiv.style.display = 'block';
+        testerPanel.style.display = 'none';
+        organizerPanel.style.display = 'none';
+        currentRole = null;
+        organizerPassPanel.style.display = 'none';
+        // 确保角色按钮可见（恢复显示）
+        if(roleButtonsContainer) roleButtonsContainer.style.display = 'flex';
+    }
+    
+    // 组织者按钮：隐藏角色按钮区域并显示密码面板
+    document.getElementById('organizerBtn').onclick = () => {
+        roleButtonsContainer.style.display = 'none';
+        organizerPassPanel.style.display = 'block';
+    };
+    document.getElementById('testerBtn').onclick = switchToTester;
+    document.getElementById('verifyAdminBtn').onclick = () => switchToOrganizerByPwd(document.getElementById('adminPassword').value);
+    document.getElementById('testerBackToRole').onclick = switchToRoleSelection;
+    
+    loadStimulusDuration();
+</script>
+</body>
+</html>
